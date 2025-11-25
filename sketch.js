@@ -10,18 +10,16 @@ let friction = 0.1;
 let racketColor;
 let racketWidth = 100;
 let racketHeight = 10;
-let racketBounceRate = 20;
 let ballSpeedHorizon = 10;
 
 let wallSpeed = 5;
 let wallInterval = 1000;
 let lastAddTime = 0;
-let minGapHeight = 200;
-let maxGapHeight = 300;
+const fixedGapHeight = 200; // ← GAP TETAP, TIDAK ACAK!
 let wallWidth = 80;
 let wallColors;
 
-let walls = []; // ganti ArrayList jadi array biasa
+let walls = [];
 
 let maxHealth = 100;
 let health = 100;
@@ -131,7 +129,7 @@ function drawRacket() {
   fill(racketColor);
   rectMode(CENTER);
   rect(mouseX, mouseY, racketWidth, racketHeight);
-  rectMode(CORNER); // reset biar wall ga ikut center
+  rectMode(CORNER);
 }
 
 function watchRacketBounce() {
@@ -158,14 +156,11 @@ function applyHorizontalSpeed() {
   ballSpeedHorizon -= ballSpeedHorizon * airfriction;
 }
 
-// WALL SYSTEM
+// WALL SYSTEM — UPDATED!
 function wallAdder() {
   if (millis() - lastAddTime > wallInterval) {
-    let randHeight = floor(random(minGapHeight, maxGapHeight));
-    let randY = floor(random(0, height - randHeight));
-
-    // [x, y, width, height, scoredFlag]
-    walls.push([width, randY, wallWidth, randHeight, 0]);
+    const gapY = (height - fixedGapHeight) / 2; // SELALU DI TENGAH!
+    walls.push([width, gapY, wallWidth, fixedGapHeight, 0]);
     lastAddTime = millis();
   }
 }
