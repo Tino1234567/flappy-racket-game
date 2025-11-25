@@ -12,15 +12,17 @@ let racketWidth = 100;
 let racketHeight = 10;
 let ballSpeedHorizon = 10;
 
-let wallSpeed = 5;
-let wallInterval = 1200; // jeda antar kolom
-let lastAddTime = 0;
-const fixedGapHeight = 200; // gap selalu 200px
+let wallSpeed = 5; // nggak dipakai, tapi biarin dulu
 let wallWidth = 80;
-let wallSpacing = 180; // jarak horizontal antar kolom
+const fixedGapHeight = 200; // gap tetap
 let wallColors;
 
-let walls = [];
+// Tembok statis — posisi tetap!
+let walls = [
+  [width * 0.4, (height - fixedGapHeight) / 2, wallWidth, fixedGapHeight, 0],
+  [width * 0.6, (height - fixedGapHeight) / 2, wallWidth, fixedGapHeight, 0],
+  [width * 0.8, (height - fixedGapHeight) / 2, wallWidth, fixedGapHeight, 0]
+];
 
 let maxHealth = 100;
 let health = 100;
@@ -63,8 +65,7 @@ function playScreen() {
   watchRacketBounce();
   applyHorizontalSpeed();
 
-  wallAdder();
-  wallHandler();
+  wallHandler(); // cuma handle collision & draw
 
   drawHealthBar();
   printScore();
@@ -157,24 +158,11 @@ function applyHorizontalSpeed() {
   ballSpeedHorizon -= ballSpeedHorizon * airfriction;
 }
 
-// WALL SYSTEM — SESUAI ILUSTRASI!
-function wallAdder() {
-  // Munculkan maksimal 3 kolom
-  if (millis() - lastAddTime > wallInterval && walls.length < 3) {
-    const gapY = (height - fixedGapHeight) / 2; // SELALU DI TENGAH!
-    // Posisi X: mulai dari kanan, lalu tiap kolom berikutnya + wallSpacing
-    let nextX = width + walls.length * wallSpacing;
-    walls.push([nextX, gapY, wallWidth, fixedGapHeight, 0]);
-    lastAddTime = millis();
-  }
-}
-
+// WALL SYSTEM — STATIS!
 function wallHandler() {
-  for (let i = walls.length - 1; i >= 0; i--) {
-    wallMover(i);
-    watchWallCollision(i);
+  for (let i = 0; i < walls.length; i++) {
     wallDrawer(i);
-    wallRemover(i);
+    watchWallCollision(i);
   }
 }
 
@@ -188,16 +176,6 @@ function wallDrawer(i) {
   rect(x, 0, w, y, radius);
   // bawah
   rect(x, y + h, w, height - (y + h), radius);
-}
-
-function wallMover(i) {
-  walls[i][0] -= wallSpeed;
-}
-
-function wallRemover(i) {
-  if (walls[i][0] + walls[i][2] <= 0) {
-    walls.splice(i, 1);
-  }
 }
 
 function watchWallCollision(i) {
@@ -278,8 +256,10 @@ function restart() {
   health = maxHealth;
   ballX = width / 4;
   ballY = height / 5;
-  lastAddTime = 0;
-  walls = [];
+  // Reset scored flag di semua tembok
+  for (let i = 0; i < walls.length; i++) {
+    walls[i][4] = 0;
+  }
   ballSpeedVert = 0;
   ballSpeedHorizon = 10;
   gameScreen = 0;
