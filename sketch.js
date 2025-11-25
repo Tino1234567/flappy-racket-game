@@ -13,10 +13,11 @@ let racketHeight = 10;
 let ballSpeedHorizon = 10;
 
 let wallSpeed = 5;
-let wallInterval = 1000;
+let wallInterval = 1200; // jeda antar kolom
 let lastAddTime = 0;
-const fixedGapHeight = 200; // ← GAP TETAP, TIDAK ACAK!
+const fixedGapHeight = 200; // gap selalu 200px
 let wallWidth = 80;
+let wallSpacing = 180; // jarak horizontal antar kolom
 let wallColors;
 
 let walls = [];
@@ -156,11 +157,14 @@ function applyHorizontalSpeed() {
   ballSpeedHorizon -= ballSpeedHorizon * airfriction;
 }
 
-// WALL SYSTEM — UPDATED!
+// WALL SYSTEM — SESUAI ILUSTRASI!
 function wallAdder() {
-  if (millis() - lastAddTime > wallInterval) {
+  // Munculkan maksimal 3 kolom
+  if (millis() - lastAddTime > wallInterval && walls.length < 3) {
     const gapY = (height - fixedGapHeight) / 2; // SELALU DI TENGAH!
-    walls.push([width, gapY, wallWidth, fixedGapHeight, 0]);
+    // Posisi X: mulai dari kanan, lalu tiap kolom berikutnya + wallSpacing
+    let nextX = width + walls.length * wallSpacing;
+    walls.push([nextX, gapY, wallWidth, fixedGapHeight, 0]);
     lastAddTime = millis();
   }
 }
