@@ -10,19 +10,18 @@ let friction = 0.1;
 let racketColor;
 let racketWidth = 100;
 let racketHeight = 10;
+let racketBounceRate = 20;
 let ballSpeedHorizon = 10;
 
-let wallSpeed = 5; // nggak dipakai, tapi biarin dulu
+let wallSpeed = 5;
+let wallInterval = 1000;
+let lastAddTime = 0;
+let minGapHeight = 200;
+let maxGapHeight = 300;
 let wallWidth = 80;
-const fixedGapHeight = 200; // gap tetap
 let wallColors;
 
-// Tembok statis — posisi tetap!
-let walls = [
-  [width * 0.4, (height - fixedGapHeight) / 2, wallWidth, fixedGapHeight, 0],
-  [width * 0.6, (height - fixedGapHeight) / 2, wallWidth, fixedGapHeight, 0],
-  [width * 0.8, (height - fixedGapHeight) / 2, wallWidth, fixedGapHeight, 0]
-];
+let walls = []; // ganti ArrayList jadi array biasa
 
 let maxHealth = 100;
 let health = 100;
@@ -65,7 +64,8 @@ function playScreen() {
   watchRacketBounce();
   applyHorizontalSpeed();
 
-  wallHandler(); // cuma handle collision & draw
+  wallAdder();
+  wallHandler();
 
   drawHealthBar();
   printScore();
@@ -131,7 +131,7 @@ function drawRacket() {
   fill(racketColor);
   rectMode(CENTER);
   rect(mouseX, mouseY, racketWidth, racketHeight);
-  rectMode(CORNER);
+  rectMode(CORNER); // reset biar wall ga ikut center
 }
 
 function watchRacketBounce() {
@@ -158,11 +158,24 @@ function applyHorizontalSpeed() {
   ballSpeedHorizon -= ballSpeedHorizon * airfriction;
 }
 
-// WALL SYSTEM — STATIS!
+// WALL SYSTEM
+function wallAdder() {
+  if (millis() - lastAddTime > wallInterval) {
+    let randHeight = floor(random(minGapHeight, maxGapHeight));
+    let randY = floor(random(0, height - randHeight));
+
+    // [x, y, width, height, scoredFlag]
+    walls.push([width, randY, wallWidth, randHeight, 0]);
+    lastAddTime = millis();
+  }
+}
+
 function wallHandler() {
-  for (let i = 0; i < walls.length; i++) {
-    wallDrawer(i);
+  for (let i = walls.length - 1; i >= 0; i--) {
+    wallMover(i);
     watchWallCollision(i);
+    wallDrawer(i);
+    wallRemover(i);
   }
 }
 
@@ -176,6 +189,16 @@ function wallDrawer(i) {
   rect(x, 0, w, y, radius);
   // bawah
   rect(x, y + h, w, height - (y + h), radius);
+}
+
+function wallMover(i) {
+  walls[i][0] -= wallSpeed;
+}
+
+function wallRemover(i) {
+  if (walls[i][0] + walls[i][2] <= 0) {
+    walls.splice(i, 1);
+  }
 }
 
 function watchWallCollision(i) {
@@ -256,10 +279,8 @@ function restart() {
   health = maxHealth;
   ballX = width / 4;
   ballY = height / 5;
-  // Reset scored flag di semua tembok
-  for (let i = 0; i < walls.length; i++) {
-    walls[i][4] = 0;
-  }
+  lastAddTime = 0;
+  walls = [];
   ballSpeedVert = 0;
   ballSpeedHorizon = 10;
   gameScreen = 0;
